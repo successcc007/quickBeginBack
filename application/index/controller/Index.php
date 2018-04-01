@@ -62,8 +62,9 @@ class Index
             $name = $_POST['name'];
             $adress = $_POST['adress'];
             $stime = $_POST['time'];
+            $tId = $_POST['tId'];
             //$qcodeImage=$_POST['qcodeImage'];
-            $res = Db::table("tclass")->insert(['name' => $name, 'adress' => $adress, 'stime' => $stime]);
+            $res = Db::table("tclass")->insert(['name' => $name, 'adress' => $adress, 'stime' => $stime,'cId'=>$tId]);
             // $res = 1;
             if ($res) {
                 $result = array(
