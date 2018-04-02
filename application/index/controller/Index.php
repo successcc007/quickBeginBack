@@ -64,12 +64,14 @@ class Index
             $stime = $_POST['time'];
             $tId = $_POST['tId'];
             //$qcodeImage=$_POST['qcodeImage'];
-            $res = Db::table("tclass")->insert(['name' => $name, 'adress' => $adress, 'stime' => $stime,'cId'=>$tId]);
+            $res = Db::table("tclass")->insert(['name' => $name, 'adress' => $adress, 'stime' => $stime, 'tId' => $tId]);
             // $res = 1;
             if ($res) {
+                $id = Db::table('tclass')->getLastInsID();
                 $result = array(
                     "code" => "10005",
-                    "msg" => "添加成功"
+                    "msg" => "添加成功",
+                    "info"=>$id
                 );
                 echo json_encode($result);
                 die;
@@ -92,6 +94,30 @@ class Index
         }
 
     }
+
+    public function AddImgQrPath(Request $request){
+        $imgPath = $_POST['imgPath'];
+        $id =$_POST['id'];
+        $newDir = "../../../../upload/QR".$id;
+        $move = move_uploaded_file($imgPath,$newDir);
+        if($move){
+            $res=Db::table("tclass")->where("id","=",$id)->update(['qcodeImage'=>$newDir]);
+            if ($res) {
+                $result = array(
+                    "msg" => "添加二维码成功"
+                );
+                echo json_encode($result);
+                die;
+            } else {
+                $result = array(
+                    "msg" => "添加二维码失败"
+                );
+                echo json_encode($result);
+                die;
+            }
+        }
+    }
+
 
     /*
      * 删除课程
@@ -189,7 +215,6 @@ class Index
      * */
     public function  Login(Request $request)
     {
-
         $uname = $_POST['uname'];
         $pword = $_POST['pword'];
         $res = DB::table("users")->where(array('uname' => $uname, 'pword' => $pword))->find();
@@ -209,5 +234,34 @@ class Index
         }
     }
 
+    /*
+     * 学生加入课程
+     * */
+    public function AttendClass(Request $request)
+    {
+        $sId = $_GET['sId'];
+        $cId = $_GET['cId'];
+        if (empty($sId) || empty($cId)) {
+            $result = array(
+                "msg" => "学生id或者课程id为空"
+            );
+            echo json_encode($result);
+            die;
+        }
+        $res = DB::table("stuandclass")->insert(['sId' => $sId, 'cId' => $cId]);
+        if ($res) {
+            $result = array(
+                "msg" => "加入课程成功",
+            );
+            echo json_encode($result);
+            die;
+        } else {
+            $result = array(
+                "msg" => "加入失败",
+            );
+            echo json_encode($result);
+            die;
+        }
+    }
 
 }

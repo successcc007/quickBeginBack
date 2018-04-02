@@ -17,6 +17,7 @@ Route::rule('/api/v1/index/GetMessages','Index/GetMessages');//查询留言
 Route::rule('/api/v1/index/GetScores','Index/GetScores');//查询成绩
 Route::rule('/api/v1/index/DeleteClass','Index/DeleteClass');//删除课程
 Route::rule('/api/v1/index/Login','Index/Login');//登录
+Route::rule('/api/v1/index/AttendClass','Index/AttendClass');//登录
 
 
 
