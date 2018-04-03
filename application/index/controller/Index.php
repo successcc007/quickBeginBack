@@ -71,7 +71,7 @@ class Index
                 $result = array(
                     "code" => "10005",
                     "msg" => "添加成功",
-                    "info"=>$id
+                    "info" => $id
                 );
                 echo json_encode($result);
                 die;
@@ -95,13 +95,75 @@ class Index
 
     }
 
-    public function AddImgQrPath(Request $request){
+    /*
+     * 计算距离
+     * */
+    private function getDistance($lat1, $lng1, $lat2, $lng2)
+    {
+        $earthRadius = 6367000; //approximate radius of earth in meters
+        $lat1 = ($lat1 * pi()) / 180;
+        $lng1 = ($lng1 * pi()) / 180;
+        $lat2 = ($lat2 * pi()) / 180;
+        $lng2 = ($lng2 * pi()) / 180;
+        $calcLongitude = $lng2 - $lng1;
+        $calcLatitude = $lat2 - $lat1;
+        $stepOne = pow(sin($calcLatitude / 2), 2) + cos($lat1) * cos($lat2) * pow(sin($calcLongitude / 2), 2);
+        $stepTwo = 2 * asin(min(1, sqrt($stepOne)));
+        $calculatedDistance = $earthRadius * $stepTwo;
+        return round($calculatedDistance);
+    }
+
+    /*
+     * 更新位置
+     * */
+    public function SetPosition(Request $request)
+    {
+        $longitude = $_GET['longitude'];
+        $latitude = $_GET['latitude'];
+        $id = $_GET['cId'];
+        $type = $_GET['type'];
+        $res="";
+        if ($type == 1) {
+            $res = Db::table("tclass")->where("id", "=", $id)->update(['positionX' => $longitude, 'positionY' => $latitude]);
+        } elseif ($type == 0) {
+            $res1 = DB::table("tclass")->where("id", "=", $id)->find();
+            $longitudeC = $res1["positionX"];
+            $latitudeC = $res1["positionY"];
+            $miles = $this->getDistance($longitudeC,$latitudeC,$longitude,$latitude);
+            $status= "正常";
+            if($miles>500){
+                $status="迟到";
+            }
+            $res = Db::table("stuandclass")->where("cId", "=", $id)->update(['status' => $status]);
+        }
+        if ($res) {
+            $result = array(
+                "msg" => "添加位置成功"
+            );
+            echo json_encode($result);
+            die;
+        } else {
+            $result = array(
+                "msg" => "添加位置失败"
+            );
+            echo json_encode($result);
+            die;
+        }
+    }
+
+    /*
+     * 上传二维码
+     * todo fies上传了
+     * */
+    public function AddImgQrPath(Request $request)
+    {
         $imgPath = $_POST['imgPath'];
-        $id =$_POST['id'];
-        $newDir = "../../../../upload/QR".$id;
-        $move = move_uploaded_file($imgPath,$newDir);
-        if($move){
-            $res=Db::table("tclass")->where("id","=",$id)->update(['qcodeImage'=>$newDir]);
+        $id = $_POST['id'];
+        $arrType = explode('.', $imgPath);
+        $type = end($arrType);
+        $newDir = "../../../../upload/QR" . $id . '.' . $type;
+        if (true) {
+            $res = Db::table("tclass")->where("id", "=", $id)->update(['qcodeImage' => $newDir]);
             if ($res) {
                 $result = array(
                     "msg" => "添加二维码成功"
