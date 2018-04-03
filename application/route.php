@@ -20,6 +20,7 @@ Route::rule('/api/v1/index/Login','Index/Login');//登录
 Route::rule('/api/v1/index/AttendClass','Index/AttendClass');//参加课程
 Route::rule('/api/v1/index/AddImgQrPath','Index/AddImgQrPath');//二维码保存
 Route::rule('/api/v1/index/SetPosition','Index/SetPosition');//二维码保存
+Route::rule('/api/v1/index/GetClassesByStudent','Index/GetClassesByStudent');//二维码保存
 
 
 

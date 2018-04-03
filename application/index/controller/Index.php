@@ -7,11 +7,12 @@ use think\Request;
 class Index
 {
     /*
-     * 查询所有课程
+     * 查询某老师所有课程
      * */
     public function GetClasses()
     {
-        $classInfo = Db::table('tclass')->select();
+        $tId = $_GET['tId'];//教师id
+        $classInfo = Db::table('tclass')->where("tId", "=", $tId)->select();
         if (empty($classInfo)) {
             $result = array(
                 "code" => "1001",
@@ -23,6 +24,39 @@ class Index
             $result = array(
                 "msg" => "查询成功",
                 "info" => $classInfo
+            );
+            echo json_encode($result);
+            die;
+        }
+    }
+
+    /*
+     * 查询某同学所选课程
+     * */
+    public function GetClassesByStudent()
+    {
+
+        $sId = $_GET['sId'];
+        $resSandC = Db::table("stuandclass")->where("sId", "=", $sId)->select();
+        $arrClasses = array();
+        for ($i = 0; $i < count($resSandC); $i++) {
+            $cId=$resSandC[$i]['cId'];
+            $resC = Db::table("tclass")->where("id", "=", $cId)->find();
+            $tId = $resC['tId'];
+            $resT=Db::table("users")->where("id","=",$tId)->find();
+            $resC['tId']=$resT['name'];
+            $arrClasses[] = $resC;
+        }
+        if (empty($resSandC)) {
+            $result = array(
+                "msg" => "没有课程"
+            );
+            echo json_encode($result);
+            die;
+        } else {
+            $result = array(
+                "msg" => "查询成功",
+                "info" => $arrClasses
             );
             echo json_encode($result);
             die;
@@ -122,17 +156,17 @@ class Index
         $latitude = $_GET['latitude'];
         $id = $_GET['cId'];
         $type = $_GET['type'];
-        $res="";
+        $res = "";
         if ($type == 1) {
             $res = Db::table("tclass")->where("id", "=", $id)->update(['positionX' => $longitude, 'positionY' => $latitude]);
         } elseif ($type == 0) {
             $res1 = DB::table("tclass")->where("id", "=", $id)->find();
             $longitudeC = $res1["positionX"];
             $latitudeC = $res1["positionY"];
-            $miles = $this->getDistance($longitudeC,$latitudeC,$longitude,$latitude);
-            $status= "正常";
-            if($miles>500){
-                $status="迟到";
+            $miles = $this->getDistance($longitudeC, $latitudeC, $longitude, $latitude);
+            $status = "正常";
+            if ($miles > 500) {
+                $status = "迟到";
             }
             $res = Db::table("stuandclass")->where("cId", "=", $id)->update(['status' => $status]);
         }
@@ -243,6 +277,85 @@ class Index
             $result = array(
                 "msg" => "查询成功",
                 "info" => $messages
+            );
+            echo json_encode($result);
+            die;
+        }
+    }
+
+    /*
+     * 新增留言
+     * */
+    public function AddMessages(Request $request)
+    {
+        $message = $_POST['message'];
+        $cId = $_POST['cId'];
+        $sId = $_POST['sId'];
+        $resS = Db::table("users")->where("id", "=", $sId)->find();
+        $name = $resS['name'];
+        $insertData['content'] = $message;
+        $insertData['sName'];
+        $insertData['cId'] = $cId;
+        $res = Db::table("message")->where("cId", "=", $cId)->insert($insertData);
+        if (empty($res)) {
+            $result = array(
+                "msg" => "添加失败"
+            );
+            echo json_encode($result);
+            die;
+        } else {
+            $result = array(
+                "msg" => "添加成功",
+            );
+            echo json_encode($result);
+            die;
+        }
+    }
+
+    /*
+     * 新增回复
+     * */
+    public function AddAnswer(Request $request)
+    {
+        $answer = $_POST['answer'];
+        $mId = $_POST['mId'];
+        $cId = $_POST['cId'];
+        $insertData["mId"] = $mId;
+        $insertData['cId'] = $cId;
+        $insertData['content'] = $answer;
+        $res = Db::table("answer")->insert($insertData);
+        if (empty($res)) {
+            $result = array(
+                "msg" => "添加回复失败"
+            );
+            echo json_encode($result);
+            die;
+        } else {
+            $result = array(
+                "msg" => "添加回复成功",
+            );
+            echo json_encode($result);
+            die;
+        }
+    }
+
+    /*
+     * 查询回复
+     * */
+    public function GetAnswer(Request $request)
+    {
+        $mId = $_POST['mId'];
+        $res = Db::table("answer")->where("mId", "=", $mId)->find();
+        if (empty($res)) {
+            $result = array(
+                "msg" => "查询失败"
+            );
+            echo json_encode($result);
+            die;
+        } else {
+            $result = array(
+                "msg" => "查询成功",
+                "info" => $res
             );
             echo json_encode($result);
             die;
